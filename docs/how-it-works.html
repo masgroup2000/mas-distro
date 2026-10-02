@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How it works - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html">Install</a><a href="profiles.html">Two profiles</a><a href="privacy.html">Privacy options</a><a href="how-it-works.html" aria-current="page">How it works</a><a href="recovery.html">Recovery</a><a href="troubleshooting.html">Troubleshooting</a></nav></aside><article>
+<h1 id="how-mas-works">How MAS works</h1>
+<p>This page explains what the installer builds and how a MAS machine
+boots. You don't need it to use MAS, but it helps a lot when something
+goes wrong. See also <a href="recovery.html">Recovery</a>.</p>
+<h2 id="disk-layout">Disk layout</h2>
+<p>The installer wipes the disk and creates a GPT partition table.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Partition</th>
+<th>UEFI</th>
+<th>Legacy BIOS</th>
+<th>Encrypted</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>EFI System Partition, 512 MiB (FAT32)</td>
+<td><code>bios_grub</code>, 1 MiB, left empty for GRUB</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><code>MASBOOT</code>, 512 MiB (ext4)</td>
+<td><code>MASBOOT</code>, 512 MiB (ext4)</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Profile A (LUKS2, then btrfs)</td>
+<td>same</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Profile B (LUKS2, then btrfs), only with two profiles</td>
+<td>same</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>With two profiles, the space left after partition 2 is split 50/50
+between A and B.</p>
+<p>Partitions 1 and 2 are the only unencrypted parts.
+<code>MASBOOT</code> holds GRUB's modules and its menu
+(<code>grub.cfg</code>) and nothing else. The kernel and the initramfs
+are not on it. They live inside each profile's encrypted volume.</p>
+<p>On NVMe disks the partition names carry a <code>p</code>, for example
+<code>/dev/nvme0n1p3</code>.</p>
+<h2 id="inside-a-profile">Inside a profile</h2>
+<p>Each profile is a LUKS2 container, mapped as
+<code>mas_profile_a</code> or <code>mas_profile_b</code>. Inside is a
+btrfs filesystem with two subvolumes:</p>
+<ul>
+<li><code>@</code> mounted at <code>/</code></li>
+<li><code>@snapshots</code> mounted at <code>/.snapshots</code>, used by
+snapper for rollbacks</li>
+</ul>
+<p><code>/etc/fstab</code> mounts the root subvolume, the snapshots
+subvolume, <code>MASBOOT</code> at <code>/boot/grub</code>, and (on
+UEFI) the ESP at <code>/boot/efi</code>.</p>
+<h2 id="how-the-system-gets-installed">How the system gets
+installed</h2>
+<ol type="1">
+<li><strong>Base system.</strong> <code>debootstrap</code> downloads a
+minimal Debian 13 into a folder in the live session.</li>
+<li><strong>Copy.</strong> The disk is partitioned and encrypted, and
+the base is copied onto Profile A with <code>rsync</code>.</li>
+<li><strong>Configure in a chroot.</strong> The installer enters the new
+system and runs <code>apt</code> to install the kernel, GRUB packages,
+the initramfs tools, your drivers, and the privacy options. It then
+installs KDE Plasma, creates users, and rebuilds the initramfs.</li>
+<li><strong>Clone for Profile B</strong> (two profiles only). See
+below.</li>
+<li><strong>Bootloader.</strong> GRUB is installed and its menu is
+written.</li>
+</ol>
+<p>Steps 1 and 3 download from Debian's mirrors, which is why the
+install needs internet.</p>
+<h2 id="how-a-boot-works">How a boot works</h2>
+<ol type="1">
+<li>The firmware loads GRUB. On UEFI it starts from the ESP, where GRUB
+was installed with <code>--removable</code> (the fallback path
+<code>EFI/BOOT/BOOTX64.EFI</code>). On BIOS it starts from the MBR and
+the <code>bios_grub</code> partition.</li>
+<li>GRUB reads its modules and <code>grub.cfg</code> from
+<code>MASBOOT</code>. The menu appears with no password.</li>
+<li>You pick a profile. GRUB runs <code>cryptomount</code> on that
+profile's LUKS partition and asks for its
+<strong>passphrase</strong>.</li>
+<li>GRUB reads <code>/@/boot/vmlinuz</code> and
+<code>/@/boot/initrd.img</code> from inside the unlocked volume and
+starts the kernel. These are symlinks that Debian keeps pointing at the
+newest installed kernel, so a kernel update needs no change to the
+menu.</li>
+<li>The initramfs unlocks the volume again, this time with a
+<strong>keyfile</strong>, so you type the passphrase only once.</li>
+<li>The system mounts the btrfs root and boots.</li>
+</ol>
+<p>Because the menu is written as fixed entries, with the profile's LUKS
+and filesystem UUIDs, GRUB never has to scan for systems. Only the
+profile you pick is ever unlocked.</p>
+<h2 id="keys">Keys</h2>
+<p>Each profile's LUKS header has two keyslots:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Slot</th>
+<th>Holds</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>Your passphrase</td>
+<td>GRUB, and you, for everything else</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>A random keyfile (2 KiB)</td>
+<td>The initramfs at boot</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The keyfile sits at
+<code>/etc/cryptsetup-keys.d/&lt;mapper&gt;.key</code>, inside the
+encrypted volume, and is copied into the initramfs. The initramfs is
+also inside the encrypted volume, and it is readable by root only. So
+the keyfile can't be read until you have unlocked the disk.</li>
+<li>The passphrase slot uses PBKDF2, not LUKS2's default Argon2. GRUB
+can't compute Argon2, so without PBKDF2 it couldn't unlock the
+disk.</li>
+<li>The keyfile slot uses a low iteration count on purpose. It is random
+data, not a human-chosen password, so slow key stretching adds nothing
+and would only slow your boot.</li>
+<li>If you leave the passphrase blank, no keyfile is made and the volume
+has an empty passphrase. That means no real protection.</li>
+</ul>
+<h2 id="two-profiles">Two profiles</h2>
+<p>Profile B is built by cloning the finished Profile A, which is much
+faster than installing twice.</p>
+<p><strong>Copied from A:</strong> the whole system, including kernel,
+desktop, drivers and settings.</p>
+<p><strong>Not copied, and created fresh for B:</strong></p>
+<ul>
+<li>A's keyfile (B gets its own, with its own passphrase)</li>
+<li>The initramfs (rebuilt after B's <code>crypttab</code> is
+fixed)</li>
+<li><code>fstab</code> and <code>crypttab</code> (rewritten for B's
+UUIDs)</li>
+<li>The machine ID (generated on first boot)</li>
+<li>The hostname (<code>&lt;name&gt;-b</code>)</li>
+<li>Root and admin credentials (the ones you entered for Profile B)</li>
+<li>A's snapshots, and the contents of the ESP and
+<code>/boot/grub</code></li>
+</ul>
+<p>Nothing is shared between profiles except the two small unencrypted
+partitions. The two LUKS volumes have separate headers and keys, and
+each profile has its own swap and snapshots.</p>
+<p>To switch, <code>mas-switch-profile</code> runs
+<code>grub-reboot</code> for the other profile's menu entry
+(<code>mas-profile-a</code> or <code>mas-profile-b</code>) and restarts.
+GRUB boots that entry once.</p>
+<h2 id="install-checkpoints">Install checkpoints</h2>
+<p>The installer works in stages: <code>partition</code>,
+<code>deploy_a</code>, <code>desktop_a</code>, <code>clone_b</code>,
+<code>bootloader</code>. After each stage it saves a checkpoint with a
+fingerprint of the settings that stage depended on.</p>
+<p>If an install fails and you start the installer again, it offers to
+resume. A stage is skipped only if its fingerprint still matches, so if
+you change an option that affects it, that stage and the ones after it
+run again.</p>
+<p>The checkpoint and your saved answers (including passwords) are kept
+in <code>~/mas-build</code> in the live session, with owner-only
+permissions, and are deleted when the install succeeds. They live in
+memory, so they are gone if you reboot the USB.</p>
+<h2 id="privacy-options-at-a-glance">Privacy options at a glance</h2>
+<p>The toggles on the privacy screen are applied inside the chroot
+during install. See <a href="privacy.html">Privacy and security
+options</a> for what each does.</p>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

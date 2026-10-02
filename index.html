@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MAS 1.0 download</title>
+<link rel="stylesheet" href="assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="index.html">MAS</a><nav aria-label="Site"><a href="docs/index.html">Docs</a><a href="notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap hero">
+<div>
+<h1>MAS 1.0</h1>
+<p class="lede">A lightweight Linux distro based on Debian 13, with a KDE Plasma desktop and encrypted disks, built for people who want two separate systems on one machine.</p>
+<a class="btn" href="https://archive.org/download/masdistro-amd64.hybrid/masdistro-amd64.hybrid.iso" id="dl">Download MAS 1.0 (2.1 GB)</a>
+<p class="meta">64-bit PC (amd64), live ISO, hosted on the Internet Archive, codename Dagger. Released October 2, 2026.</p>
+</div>
+<div class="boot" role="radiogroup" aria-label="Boot menu: choose a profile">
+<button role="radio" aria-checked="false"><span>MAS Profile A</span><i>locked</i></button>
+<button role="radio" aria-checked="true"><span>MAS Profile B</span><i>unlocked</i></button>
+</div>
+</div>
+<div class="wrap">
+<section class="row"><h2>What you get</h2><div>
+<ul>
+<li><strong>Try before you install.</strong> The USB boots into the full desktop, so you can look around first.</li>
+<li><strong>One encrypted disk per profile.</strong> Each has its own passphrase, typed once at boot.</li>
+<li><strong>One system or two.</strong> The second is a copy of the first with its own passphrase, username and passwords. Switch with a reboot.</li>
+<li><strong>A guided installer.</strong> Pick the kernel, graphics driver and privacy options: DNS over TLS, firewall, AppArmor, snapshots.</li>
+</ul>
+</div></section>
+<section class="row"><h2>Before you install</h2><div>
+<dl>
+<dt>Disk</dt><dd>40 GB minimum for one profile, 80 GB for two. The whole disk you choose is erased.</dd>
+<dt>Memory</dt><dd>4 GB RAM or more.</dd>
+<dt>Internet</dt><dd>Required during install. The kernel and desktop are downloaded then.</dd>
+<dt>Firmware</dt><dd>UEFI (Secure Boot supported) or legacy BIOS.</dd>
+</dl>
+<p>Back up anything you need first. The installer wipes the target disk.</p>
+</div></section>
+<section class="row"><h2>Tested on</h2><div>
+<dl>
+<dt>CPU</dt><dd>Intel Core i5-3320M</dd>
+<dt>Memory</dt><dd>8 GB RAM</dd>
+<dt>Graphics</dt><dd>NVIDIA GeForce GT 710M, 1 GB VRAM</dd>
+<dt>Storage</dt><dd>500 GB HDD and 250 GB SSD, tested on both</dd>
+</dl>
+</div></section>
+<section class="row"><h2>Install</h2><div>
+<ol>
+<li>Write the ISO to a USB stick of 8 GB or more. On Linux: <code>sudo dd if=masdistro-amd64.hybrid.iso of=/dev/sdX bs=4M status=progress oflag=sync</code>. Check the device with <code>lsblk</code> first, because this erases it. On Windows or macOS, use balenaEtcher.</li>
+<li>Boot from the USB and connect to the internet.</li>
+<li>Double-click <strong>MAS Installer</strong> on the desktop and follow the wizard.</li>
+<li>Reboot, remove the USB and enter your passphrase.</li>
+</ol>
+<p>Verify the ISO before you write it: the checksum is in the <a href="docs/install.html">install guide</a>. Live session login: user <code>live</code>, password <code>live</code>.</p>
+</div></section>
+<section class="row"><h2>Documentation</h2><div>
+<p><a href="docs/install.html">Install</a>, <a href="docs/profiles.html">Two profiles</a>, <a href="docs/privacy.html">Privacy options</a>, <a href="docs/recovery.html">Recovery</a> and <a href="docs/troubleshooting.html">Troubleshooting</a>. <a href="docs/how-it-works.html">How MAS works</a> explains the design.</p>
+</div></section>
+<section class="row"><h2>Community</h2><div>
+<p>Questions, bug reports and feedback: join the <a href="https://discord.gg/2YX57uEGuB">MAS Discord server</a>.</p>
+</div></section>
+<section class="row"><h2>Developer</h2><div>
+<p>MAS is built and maintained by <a href="https://github.com/masgroup2000">masgroup2000</a> on GitHub.</p>
+</div></section>
+<section class="row"><h2>Licenses and source</h2><div>
+<p>MAS is based on Debian 13. Debian's packages keep their own licenses (GPL, LGPL and others). The ISO also includes non-free firmware for Wi-Fi and graphics. The MAS installer and tools are under the MIT license. The name and logo are not. See <a href="notice.html">Licenses and source</a>.</p>
+<p>MAS is an independent project and is not in Debian's repositories. Source for the Debian packages in MAS is available from Debian at <a href="https://sources.debian.org">sources.debian.org</a>. You can also ask us for it: see the <a href="notice.html">source offer</a>.</p>
+</div></section>
+<section class="row"><h2>Known limits</h2><div>
+<ul>
+<li>Installing needs a network connection. There is no offline install yet.</li>
+<li>The live session uses the open GPU drivers. Proprietary NVIDIA is offered during install.</li>
+<li>Built and tested by one person, on one machine (see above).</li>
+</ul>
+</div></section>
+</div>
+<script>
+(function(){var r=[].slice.call(document.querySelectorAll('.boot [role=radio]'));
+function pick(i,f){r.forEach(function(e,j){var on=i===j;e.setAttribute('aria-checked',on);e.tabIndex=on?0:-1;e.lastChild.textContent=on?'unlocked':'locked'});if(f)r[i].focus()}
+r.forEach(function(e,i){e.onclick=function(){pick(i)};e.onkeydown=function(v){if(/^Arrow/.test(v.key)){v.preventDefault();pick(1-i,true)}}});pick(1)})();
+</script>
+</main>
+<footer class="site"><div class="wrap"><a href="index.html">Download</a><a href="docs/index.html">Docs</a><a href="notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

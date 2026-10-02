@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy options - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html">Install</a><a href="profiles.html">Two profiles</a><a href="privacy.html" aria-current="page">Privacy options</a><a href="how-it-works.html">How it works</a><a href="recovery.html">Recovery</a><a href="troubleshooting.html">Troubleshooting</a></nav></aside><article>
+<h1 id="privacy-and-security-options">Privacy and security options</h1>
+<p>These are the toggles on the installer's privacy screen. All are on
+by default.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DNS-over-TLS</td>
+<td>Encrypts your DNS lookups</td>
+</tr>
+<tr class="even">
+<td>MAC randomization</td>
+<td>Uses a different network hardware address each boot</td>
+</tr>
+<tr class="odd">
+<td>nftables default-deny</td>
+<td>Firewall that blocks incoming connections unless allowed</td>
+</tr>
+<tr class="even">
+<td>Disable mDNS/Avahi</td>
+<td>Stops the system announcing itself on the local network</td>
+</tr>
+<tr class="odd">
+<td>Unattended security updates</td>
+<td>Installs security fixes automatically</td>
+</tr>
+<tr class="even">
+<td>Cloudflare NTP</td>
+<td>Sets the clock from Cloudflare's time server
+(<code>time.cloudflare.com</code>)</td>
+</tr>
+<tr class="odd">
+<td>zram swap</td>
+<td>Compressed swap in RAM instead of swap on disk</td>
+</tr>
+<tr class="even">
+<td>earlyoom</td>
+<td>Frees memory before the system freezes when RAM runs out</td>
+</tr>
+<tr class="odd">
+<td>AppArmor enforced</td>
+<td>Confines programs with Debian's AppArmor profiles</td>
+</tr>
+<tr class="even">
+<td>btrfs snapshots</td>
+<td>Sets up snapper so you can roll back</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sandboxing-optional">Sandboxing (optional)</h2>
+<p>Off by default. It installs <strong>firejail</strong> so you can run
+apps in a sandbox, for example <code>firejail firefox-esr</code>. You
+can add it later.</p>
+<h2 id="snapshots">Snapshots</h2>
+<pre class="bash"><code>sudo snapper -c root list          # see snapshots
+sudo snapper -c root create        # make one now
+sudo snapper -c root rollback N    # go back to snapshot N, then reboot</code></pre>
+<p>Test a rollback on a fresh install before you depend on it.</p>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

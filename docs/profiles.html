@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Two profiles - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html">Install</a><a href="profiles.html" aria-current="page">Two profiles</a><a href="privacy.html">Privacy options</a><a href="how-it-works.html">How it works</a><a href="recovery.html">Recovery</a><a href="troubleshooting.html">Troubleshooting</a></nav></aside><article>
+<h1 id="two-profiles">Two profiles</h1>
+<p>During install you can set up <strong>two complete MAS
+systems</strong> on one disk, Profile A and Profile B. They never run at
+the same time. You pick one at boot.</p>
+<h2 id="how-they-are-kept-apart">How they are kept apart</h2>
+<ul>
+<li>Each profile is its own encrypted volume with its own
+passphrase.</li>
+<li>They share no keys, swap or LUKS headers.</li>
+<li>Profile B starts as a copy of Profile A, then gets its own machine
+ID, hostname, keys and login details.</li>
+<li>A small unencrypted partition holds only the bootloader menu.</li>
+</ul>
+<p>After install they drift apart. Software you add in A does not appear
+in B.</p>
+<h2 id="boot-menu">Boot menu</h2>
+<p>GRUB shows <strong>MAS Profile A</strong> and <strong>MAS Profile
+B</strong> with no password. Choose one, and only that profile is
+unlocked. The other stays encrypted for the whole session.</p>
+<h2 id="switching">Switching</h2>
+<p>From the running system, use one of these:</p>
+<ul>
+<li><strong>Application menu:</strong> open <strong>Switch to Profile
+B</strong> (or <strong>Switch to Profile A</strong> from B). It asks for
+your password, then reboots.</li>
+<li><strong>Login screen:</strong> choose the session <strong>Switch to
+Profile B (reboot)</strong> and log in. It reboots instead of starting a
+desktop.</li>
+<li><strong>Terminal:</strong> <code>sudo mas-switch-profile a</code> or
+<code>sudo mas-switch-profile b</code>.</li>
+</ul>
+<p>Each one tells GRUB to boot the other profile once and restarts. You
+then enter that profile's passphrase. You can also just pick a profile
+in the GRUB menu at any boot.</p>
+<h2 id="passphrases">Passphrases</h2>
+<p>There is no recovery if you forget a passphrase. Store each one
+somewhere safe. A blank passphrase works but leaves that profile
+unprotected.</p>
+<h2 id="disk-space">Disk space</h2>
+<p>Two profiles need at least 80 GB.</p>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

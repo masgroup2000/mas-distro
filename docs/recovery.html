@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html">Install</a><a href="profiles.html">Two profiles</a><a href="privacy.html">Privacy options</a><a href="how-it-works.html">How it works</a><a href="recovery.html" aria-current="page">Recovery</a><a href="troubleshooting.html">Troubleshooting</a></nav></aside><article>
+<h1 id="recovery">Recovery</h1>
+<p>How to get into an installed MAS system from the live USB, and how to
+fix the most common boot problems. Read <a href="how-it-works.html">How
+MAS works</a> first if you want to know why these steps work.</p>
+<p><strong>Passphrases cannot be recovered.</strong> If you forget one,
+the data in that profile is gone.</p>
+<h2 id="before-anything-goes-wrong-back-up-your-luks-header">Before
+anything goes wrong: back up your LUKS header</h2>
+<p>The LUKS header holds the keyslots. If it gets damaged, the profile
+can't be unlocked even with the right passphrase. A backup lets you
+restore it.</p>
+<p>The installer saves header backups to
+<code>~/mas-build/luks-headers</code> <strong>in the live session, which
+is erased when you reboot.</strong> Before you reboot after installing,
+copy that folder to a USB drive or another computer. If you have already
+rebooted, make a new backup from the installed system:</p>
+<pre class="bash"><code>sudo cryptsetup luksHeaderBackup /dev/sdX3 --header-backup-file profileA-header.img</code></pre>
+<p>Store the file somewhere other than the disk it protects. Anyone with
+the header file and your old passphrase can unlock the disk, so treat it
+as sensitive. Make a new backup after you change a passphrase.</p>
+<h2 id="get-into-an-installed-profile-from-the-live-usb">Get into an
+installed profile from the live USB</h2>
+<p>Use this for every repair below.</p>
+<ol type="1">
+<li>Boot the MAS live USB and open a terminal.</li>
+<li>Find your partitions:
+<pre class="bash"><code>lsblk -f</code></pre>
+Profile A is partition 3 and Profile B is partition 4.
+<code>MASBOOT</code> is partition 2. On UEFI, partition 1 is the ESP.
+Use the names you see, such as <code>/dev/sda3</code> or
+<code>/dev/nvme0n1p3</code>.</li>
+<li>Unlock the profile (replace the partition name):
+<pre class="bash"><code>sudo cryptsetup open /dev/sdX3 mas_profile_a</code></pre>
+For Profile B use <code>/dev/sdX4</code> and the name
+<code>mas_profile_b</code>.</li>
+<li>Mount it:
+<pre class="bash"><code>sudo mount -o subvol=@ /dev/mapper/mas_profile_a /mnt
+sudo mount -o subvol=@snapshots /dev/mapper/mas_profile_a /mnt/.snapshots
+sudo mount /dev/sdX2 /mnt/boot/grub
+sudo mount /dev/sdX1 /mnt/boot/efi        # UEFI only</code></pre></li>
+<li>Enter the system:
+<pre class="bash"><code>sudo mount --bind /dev /mnt/dev
+sudo mount --bind /dev/pts /mnt/dev/pts
+sudo mount -t proc proc /mnt/proc
+sudo mount -t sysfs sys /mnt/sys
+sudo chroot /mnt /bin/bash</code></pre></li>
+</ol>
+<p>You are now inside your installed system as root. When you are
+done:</p>
+<pre class="bash"><code>exit
+sudo umount -R /mnt
+sudo cryptsetup close mas_profile_a</code></pre>
+<h2 id="problems-and-fixes">Problems and fixes</h2>
+<p>Do the steps above for the profile you are fixing, then run the fix
+inside the chroot.</p>
+<h3
+id="the-grub-menu-is-missing-or-you-land-at-a-grub-or-grub-rescue-prompt">The
+GRUB menu is missing, or you land at a <code>grub&gt;</code> or
+<code>grub rescue&gt;</code> prompt</h3>
+<p>Reinstall GRUB and regenerate its config. Use the commands for your
+boot mode.</p>
+<p>UEFI:</p>
+<pre class="bash"><code>grub-install --target=x86_64-efi --efi-directory=/boot/efi --removable
+update-grub</code></pre>
+<p>Legacy BIOS (use the whole disk, not a partition, for example
+<code>/dev/sda</code>):</p>
+<pre class="bash"><code>grub-install --target=i386-pc --recheck /dev/sdX
+update-grub</code></pre>
+<h3
+id="grub-asks-for-the-passphrase-but-boot-then-drops-to-an-initramfs-prompt">GRUB
+asks for the passphrase but boot then drops to an <code>initramfs</code>
+prompt</h3>
+<p>The initramfs can't unlock the disk. Check that
+<code>/etc/crypttab</code> has a line for this profile that matches
+<code>lsblk -f</code>:</p>
+<pre class="bash"><code>cat /etc/crypttab
+blkid /dev/sdX3</code></pre>
+<p>The UUID on the crypttab line must match the UUID of the LUKS
+partition. If it does, rebuild the initramfs:</p>
+<pre class="bash"><code>update-initramfs -u -k all</code></pre>
+<h3 id="the-system-asks-for-the-passphrase-twice">The system asks for
+the passphrase twice</h3>
+<p>The keyfile didn't get set up, so the initramfs falls back to asking.
+It is harmless. To check, look for
+<code>/etc/cryptsetup-keys.d/mas_profile_a.key</code> and for the key
+path in the <code>crypttab</code> line. A path means the keyfile is in
+use. <code>none</code> means it isn't.</p>
+<h3 id="a-kernel-update-left-you-unable-to-boot">A kernel update left
+you unable to boot</h3>
+<p>Boot the profile's other kernel if you have one, or use the chroot
+and run:</p>
+<pre class="bash"><code>update-initramfs -u -k all
+update-grub</code></pre>
+<h3 id="you-want-to-go-back-to-an-earlier-state">You want to go back to
+an earlier state</h3>
+<p>If you enabled snapshots, you can list them from the running system
+with <code>sudo snapper -c root list</code>. From a chroot, the same
+command works.</p>
+<h3 id="the-luks-header-is-damaged">The LUKS header is damaged</h3>
+<p>If <code>cryptsetup open</code> says the device isn't a valid LUKS
+device, restore the header from your backup:</p>
+<pre class="bash"><code>sudo cryptsetup luksHeaderRestore /dev/sdX3 --header-backup-file profileA-header.img</code></pre>
+<p>This overwrites the header, so check that the file matches this
+partition. The installer's own backup was taken before the boot keyfile
+was added, so after restoring it the system will ask for the passphrase
+a second time at boot. A backup you made later does not have that
+problem. Passphrases changed after the backup was made will not work
+either.</p>
+<h2 id="change-a-passphrase">Change a passphrase</h2>
+<p>Run this on the installed system or in the chroot. It changes the
+passphrase in slot 0 and leaves the boot keyfile alone:</p>
+<pre class="bash"><code>sudo cryptsetup luksChangeKey /dev/sdX3 --pbkdf pbkdf2</code></pre>
+<p>Keep <code>--pbkdf pbkdf2</code>. Without it, GRUB can't unlock the
+disk. Make a fresh <a
+href="#before-anything-goes-wrong-back-up-your-luks-header">header
+backup</a> afterwards.</p>
+<h2 id="still-stuck">Still stuck</h2>
+<p>See <a href="troubleshooting.html">Troubleshooting</a>, and include the
+output of <code>lsblk -f</code> when you ask for help.</p>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

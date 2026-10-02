@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Troubleshooting - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html">Install</a><a href="profiles.html">Two profiles</a><a href="privacy.html">Privacy options</a><a href="how-it-works.html">How it works</a><a href="recovery.html">Recovery</a><a href="troubleshooting.html" aria-current="page">Troubleshooting</a></nav></aside><article>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<h2 id="the-installer-says-no-network">The installer says no
+network</h2>
+<p>Packages are downloaded during install, so connect Ethernet or Wi-Fi
+first. The installer checks that <code>deb.debian.org</code> is
+reachable and warns you if it isn't.</p>
+<h2 id="the-install-stopped-halfway">The install stopped halfway</h2>
+<p>Run the installer again without rebooting the USB and choose to
+resume. See <a href="install.html#if-the-install-stops">Install</a>.</p>
+<h2 id="the-installer-refuses-my-disk">The installer refuses my
+disk</h2>
+<p>It won't use the disk you booted from or one with mounted partitions.
+Unmount them or choose another disk. It also needs 40 GB, or 80 GB for
+two profiles.</p>
+<h2 id="i-forgot-my-passphrase">I forgot my passphrase</h2>
+<p>It can't be recovered. The disk is encrypted on purpose.</p>
+<h2 id="it-wont-boot-or-grub-is-missing">It won't boot, or GRUB is
+missing</h2>
+<p>See <a href="recovery.html">Recovery</a>.</p>
+<h2 id="wi-fi-doesnt-work">Wi-Fi doesn't work</h2>
+<p>Firmware for common Intel, Realtek, Broadcom and AMD chips is
+included. If yours isn't, you may need to install its firmware package
+with <code>apt</code> over Ethernet.</p>
+<h2 id="report-a-bug">Report a bug</h2>
+<p>Tell us on the <a href="https://discord.gg/2YX57uEGuB">MAS Discord
+server</a>. Include your MAS version, whether you used UEFI or BIOS, one
+or two profiles, your graphics card, and the last lines the installer
+printed. Running <strong>MAS Installer (terminal)</strong> shows that
+output.</p>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Install - MAS</title>
+<link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="site"><div class="wrap"><a class="brand" href="../index.html">MAS</a><nav aria-label="Site"><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses</a><a href="https://discord.gg/2YX57uEGuB">Discord</a></nav></div></header>
+<main>
+<div class="wrap docs"><aside><nav aria-label="Documentation"><a href="index.html">Overview</a><a href="install.html" aria-current="page">Install</a><a href="profiles.html">Two profiles</a><a href="privacy.html">Privacy options</a><a href="how-it-works.html">How it works</a><a href="recovery.html">Recovery</a><a href="troubleshooting.html">Troubleshooting</a></nav></aside><article>
+<h1 id="install-mas">Install MAS</h1>
+<p>The installer erases the whole disk you choose. Back up anything you
+need first.</p>
+<h2 id="1-check-the-download">1. Check the download</h2>
+<pre class="bash"><code>sha256sum masdistro-amd64.hybrid.iso</code></pre>
+<p>The result must match this checksum:</p>
+<pre><code>3670e65dd716164e2ae17a6419c1c8a88ba6c6da940227270610e95db65a0313</code></pre>
+<p>For a stronger check, download <a href="../keys/SHA256SUMS">SHA256SUMS</a> and <a href="../keys/SHA256SUMS.asc">SHA256SUMS.asc</a>. Also download the <a href="../keys/mas-distro-public-key.asc">public key</a>. Its fingerprint is <code>AD97 4298 3813 9A91 B6F0 01CD 7CEF 9838 D6C1 74C4</code>. Check that it matches before you trust it. Then run:</p>
+<pre class="bash"><code>gpg --import mas-distro-public-key.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS
+sha256sum -c SHA256SUMS --ignore-missing</code></pre>
+<h2 id="2-write-the-iso-to-a-usb-stick-8-gb-or-more">2. Write the ISO to
+a USB stick (8 GB or more)</h2>
+<p><strong>Linux:</strong> find your stick with <code>lsblk</code>, then
+run this. The wrong device name will erase the wrong disk.</p>
+<pre class="bash"><code>sudo dd if=masdistro-amd64.hybrid.iso of=/dev/sdX bs=4M status=progress oflag=sync</code></pre>
+<p><strong>Windows or macOS:</strong> use <a
+href="https://etcher.balena.io">balenaEtcher</a>.</p>
+<h2 id="3-boot-and-connect">3. Boot and connect</h2>
+<p>Boot from the USB (usually F12, F10, Esc or Del at power-on). The
+live desktop opens and you can try MAS without installing. Connect to
+Wi-Fi or plug in Ethernet, because the install downloads packages.</p>
+<p>Live session login: user <code>live</code>, password
+<code>live</code>. This is only for the USB session, not your installed
+system.</p>
+<h2 id="4-run-the-installer">4. Run the installer</h2>
+<p>Double-click <strong>MAS Installer</strong> on the desktop. If the
+graphical one has a problem, use <strong>MAS Installer
+(terminal)</strong>.</p>
+<p>Nothing is written to disk until you confirm on the last screen. You
+can go back at any step.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>What you choose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Disk</td>
+<td>The target disk. It refuses the disk you booted from or any disk in
+use.</td>
+</tr>
+<tr class="even">
+<td>Dual profile</td>
+<td>One system or two. See <a href="profiles.html">Two profiles</a>.</td>
+</tr>
+<tr class="odd">
+<td>Passphrase</td>
+<td>One per profile. It can be left blank, but then the disk is not
+protected.</td>
+</tr>
+<tr class="even">
+<td>Kernel</td>
+<td><code>stable</code> (Debian default, recommended),
+<code>backports</code> (newer), or <code>manual</code> (advanced)</td>
+</tr>
+<tr class="odd">
+<td>Graphics driver</td>
+<td>Detected for you</td>
+</tr>
+<tr class="even">
+<td>Secure Boot</td>
+<td>The installer checks whether it is on and tells you what that means
+for NVIDIA</td>
+</tr>
+<tr class="odd">
+<td>Privacy</td>
+<td>A list of toggles, all on by default. See <a
+href="privacy.html">Privacy</a>.</td>
+</tr>
+<tr class="even">
+<td>Sandboxing</td>
+<td>Optional firejail per-app sandboxing, off by default</td>
+</tr>
+<tr class="odd">
+<td>Extras</td>
+<td>Firefox ESR (on) and fastfetch (off)</td>
+</tr>
+<tr class="even">
+<td>System setup</td>
+<td>Hostname, admin user, passwords</td>
+</tr>
+<tr class="odd">
+<td>Locale and network</td>
+<td>Language, timezone, keyboard, Wi-Fi</td>
+</tr>
+<tr class="even">
+<td>Confirm</td>
+<td>Review everything, then start</td>
+</tr>
+</tbody>
+</table>
+<p>The install takes a while. It downloads the base system, the kernel
+and KDE Plasma.</p>
+<h2 id="5-save-your-luks-header-backups">5. Save your LUKS header
+backups</h2>
+<p>When the install finishes, the installer says the LUKS header backups
+are in <code>~/mas-build/luks-headers</code>. That folder is in the live
+session and is erased when you reboot. Copy it to a USB drive or another
+computer first. See <a
+href="recovery.html#before-anything-goes-wrong-back-up-your-luks-header">Recovery</a>
+for why.</p>
+<h2 id="6-first-boot">6. First boot</h2>
+<ol type="1">
+<li>Remove the USB and reboot.</li>
+<li>Enter your passphrase once, at boot.</li>
+<li>Log in with the admin user you created.</li>
+</ol>
+<h2 id="if-the-install-stops">If the install stops</h2>
+<p>Run the installer again without rebooting the USB. It finds the saved
+progress and offers to resume, and stages whose settings haven't changed
+are skipped. The progress is kept in the live session, so if you reboot
+the USB the install starts from the beginning. See <a
+href="how-it-works.html#install-checkpoints">How MAS works</a>.</p>
+<h2 id="updating">Updating</h2>
+<pre class="bash"><code>sudo apt update &amp;&amp; sudo apt full-upgrade</code></pre>
+
+</article></div>
+</main>
+<footer class="site"><div class="wrap"><a href="../index.html">Download</a><a href="../docs/index.html">Docs</a><a href="../notice.html">Licenses and source</a><a href="https://discord.gg/2YX57uEGuB">Discord</a><a href="https://github.com/masgroup2000">Developer: masgroup2000</a><span>MAS is based on Debian</span></div></footer>
+</body></html>
